@@ -14,6 +14,5 @@ task main() {
   motor[left] = 0;
   motor[right] = 0;
   nxtDisplayCenteredTextLine(3, "Segment end");
-  PlaySound(soundBlip);
   wait10Msec(1000);
 }

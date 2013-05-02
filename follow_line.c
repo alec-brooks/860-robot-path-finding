@@ -6,64 +6,17 @@
 #include "compass.c"
 #include "light_sensor.c"
 
-#define CENTRE_THRESHOLD 5
-#define SWEEP_ANGLE 15
+#define CENTRE_THRESHOLD 4
+#define SWEEP_ANGLE 5
 
 #define LEFT false
 #define RIGHT true
-
+bool followingEdge = true;
 bool inSafetyZone(int centre, int threshold) {
-  int max = (centre + threshold);
-  int min = (centre - threshold);
-  int dir = currentDirection();
-  return dir <= max && dir >= min;
+	int diff = angleDifference(currentDirection(), centre);
+	return abs(diff) > threshold;
 }
 
-void FollowLineTilEnd(void) {
-  //Find border point
-  motor[left] = -SPEED;
-  motor[right] = SPEED;
-  bool wasDark = isDark();
-  while (wasDark == isDark()) {
-    abortTimeslice();
-  }
-
-  //Find centre angle
-  int forwards = currentDirection();
-  //Start sweeping
-  bool expectDark = !wasDark;
-  bool direction = LEFT;
-  for(;;) {
-    //Sweep&check til at x angle (or for x time)
-    if(isDark() != expectDark) {
-      if( inSafetyZone(forwards, CENTRE_THRESHOLD) ) {
-      //Change expectation when light changes close to centre
-        //Also adjust centre angle
-       forwards = currentDirection();
-       expectDark = isDark();
-      } else {
-        //Interrupt when light changes away from centre
-        PlaySound(soundDownwardTones);
-        motor[left] = 0;
-        motor[right] = 0;
-        return;
-      }
-
-      if( abs(currentDirection() - forwards) % 360 > SWEEP_ANGLE) {
-        if(direction == LEFT) {
-          direction = RIGHT;
-          motor[left] = SPEED;
-          motor[right] = -SPEED;
-        } else {
-          direction = LEFT;
-          motor[right] = SPEED;
-          motor[left] = -SPEED;
-        }
-      }
-    }
-    //Sweep other direction when x reached; repeat
-  }
-}
 
 bool DetectCan(void) {
  return false;
@@ -71,4 +24,37 @@ bool DetectCan(void) {
 
 int CountNodeEdges(void) {
   return 0;
+}
+
+void edgeFollow(bool& running){
+	motor[left] = -SPEED;
+	motor[right] = SPEED;
+	bool direction = LEFT;
+	bool wasDark = isDark();
+	do{
+		//Find border point
+		if(wasDark != isDark()) {
+			wasDark = isDark();
+			wait10Msec(10);
+			if(direction == LEFT) {
+				direction = RIGHT;
+				motor[left] = SPEED;
+				motor[right] = 0;
+			} else if( direction == RIGHT) {
+				direction = LEFT;
+				motor[right] = SPEED;
+				motor[left] = 0;
+			}
+		}
+	}while(running);
+}
+
+task FollowEdge(){
+	followingEdge = true;
+	edgeFollow(followingEdge);
+}
+void FollowLineTilEnd(void) {
+	StartTask(FollowEdge);
+	wait10Msec(500);
+	followingEdge = false;
 }

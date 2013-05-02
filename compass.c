@@ -73,6 +73,10 @@ void readCompassCalibration() {
 }
 
 void calibrateCompass(){
+
+  nMotorEncoder[left] = 0;
+  nMotorEncoder[right] = 0;
+
   string calibFileName = "encoderCalib.dat";
 
   TFileHandle calibFile;
@@ -92,7 +96,20 @@ float getCompass(float k) {
 }
 
 int currentDirection(void) {
-  return (int) getCompass(encoder_k) % 360;
+	int comp = (int) getCompass(encoder_k);
+	while( comp < 0 ) comp += 360;
+	return comp; 
+}
+
+/**
+ * Return the angle of a with respect to b,
+ * (In degrees, between -180 and 180
+ */
+int angleDifference(int a, int b) {
+  int ab = (a - b);
+  while(ab > 180) ab -= 360;
+  while(ab < -180) ab += 360;
+  return ab;
 }
 
 #endif
