@@ -7,27 +7,29 @@
 
 #define LIGHT_CALIB_FILE "lightCalib.dat"
 int light_threshold = -1;
+int dark_threshold = -1;
+int greyValue;
 
-void saveLightFile(int minLight, int maxLight){
+void saveLightFile(int light_threshold, int dark_threshold){
   TFileHandle calibFile;
   TFileIOResult result;
   int size = 4;
   string name = "lightCalib.dat";
   Delete(name, result);
   OpenWrite(calibFile, result, name, size);
-  WriteShort(calibFile, result, minLight);
-  WriteShort(calibFile, result, maxLight);
+  WriteShort(calibFile, result, light_threshold);
+  WriteShort(calibFile, result, dark_threshold);
   Close(calibFile, result);
 }
 
-void performLightCallibration(){
+void performLightCalibration(){
   motor[left] = SPEED;
   motor[right] = -SPEED;
 
   time100[T1] = 0;
   int maxLight = 0;
   int minLight = 101;
-  while(time100[T1]<20){
+  while(time100[T1]<50){
     int value = SensorValue[light];
     if(value<minLight){
       minLight = value;
@@ -40,22 +42,52 @@ void performLightCallibration(){
     motor[left] = 0;
     motor[right] = 0;
 
-    saveLightFile(minLight, maxLight);
-    light_threshold = (maxLight + minLight)/2;
+	//*
+    light_threshold = maxLight - 5;
+	dark_threshold = minLight + 5;
+	/*/
+	light_threshold = ((maxLight + minLight)*2)/3;
+	dark_threshold =  (maxLight + minLight)/3;
+	//*/
+	//light_threshold = (maxLight + minLight)/2;
+	//dark_threshold = (maxLight + minLight)/2;
+    saveLightFile(light_threshold, dark_threshold);
 }
+
+int getGreyvalue() {
+ int count = 0;
+ int a = 0;
+	for(count = 0; count < 100; count++) {
+	  a += SensorValue[light];
+	  wait10Msec(1);
+	}
+	
+	nxtDisplayBigTextLine(3, "%i", a/count);
+	return a/count;
+}
+
+short readGreyValue() {
+  TFileHandle calibFile;
+  TFileIOResult result;
+  int size = 2;
+  string name = "greyCalib.dat";
+  OpenRead(calibFile, result, name, size);
+  short grey;
+  ReadShort(calibFile, result, grey);
+  Close(calibFile, result);
+  return grey;
+}
+
 void readLightCalib() {
-  short dark;
-  short bright;
   string calibFileName = "lightCalib.dat";
 
   TFileHandle calibFile;
   TFileIOResult result;
   int size = 4;
   OpenRead(calibFile, result, calibFileName, size);
-  ReadShort(calibFile, result, dark);
-  ReadShort(calibFile, result, bright);
+  ReadShort(calibFile, result, light_threshold);
+  ReadShort(calibFile, result, dark_threshold);
   Close(calibFile, result);
-  light_threshold = (bright + dark)/2;
 }
 
 void calibrateLight(){
@@ -69,11 +101,19 @@ void calibrateLight(){
   if(result==0){
     readLightCalib();
   } else{
-    performLightCallibration();
+    performLightCalibration();
   }
+  greyValue = readGreyValue();
 }
 
-
 bool isDark(void) {
-  return SensorValue[light] < light_threshold;
+  return SensorValue[light] <= dark_threshold;
+}
+
+bool isLight(void) {
+  return SensorValue[light] >= light_threshold;
+}
+
+bool isGrey(void) {
+  return abs(SensorValue[light] - greyValue) < 5;
 }

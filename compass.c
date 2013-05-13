@@ -36,8 +36,6 @@ void performCompassCalibration() {
   int startLeftWheel = nMotorEncoder[left];
   int startRightWheel = nMotorEncoder[right];
 
-  time1[T1] = 0;
-
   for(;;) {
     wasDark = isDark();
     nxtDisplayString(1, "%i", SensorValue[light]);
@@ -48,8 +46,6 @@ void performCompassCalibration() {
   motor[left] = 0;
   int endLeftWheel = nMotorEncoder[left];
   int endRightWheel = nMotorEncoder[right];
-
-  int elapsed = time1[T1];
 
   float k = ((endLeftWheel - startLeftWheel)
           - (endRightWheel - startRightWheel))/360.0;
@@ -98,7 +94,7 @@ float getCompass(float k) {
 int currentDirection(void) {
 	int comp = (int) getCompass(encoder_k);
 	while( comp < 0 ) comp += 360;
-	return comp; 
+	return comp;
 }
 
 /**
