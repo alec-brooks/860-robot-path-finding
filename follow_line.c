@@ -7,29 +7,21 @@
 #include "config.h"
 #include "compass.c"
 #include "light_sensor.c"
+#include "map.c"
 
 #define LEFT false
 #define RIGHT true
 
 #define SONAR_THRESHOLD 20
-#define ANGLE_THRESHOLD 30
+#define ANGLE_THRESHOLD 20
 
 #define FOUND_ERROR -1
-#define FOUND_CAN 0
-#define FOUND_NODE 1
-#define FOUND_HOTEL 2
-#define FOUND_LEAF 3
+#define FOUND_CAN 1
+#define FOUND_NODE 2
+#define FOUND_HOTEL 4
+#define FOUND_LEAF 8
 
 bool followingEdge = true;
-
-
-bool DetectCan(void) {
- return false;
-}
-
-int CountNodeEdges(void) {
-  return 0;
-}
 
 void displayBrightness(void) {
 	string name;
@@ -44,7 +36,9 @@ void displayBrightness(void) {
  }
 
 bool direction = LEFT;
+int sweeps;
 void edgeFollow(bool& running){
+	sweeps = 0;
 	if(direction == LEFT) {
 		motor[left] = -SPEED;
 		motor[right] = SPEED;
@@ -53,7 +47,7 @@ void edgeFollow(bool& running){
 		motor[right] = -SPEED;
 	}
 	bool wasDark = isDark();
-	displayBrightness();
+//displayBrightness();
 	do{
 	  if(direction) {
 		  nxtDisplayCenteredTextLine(2, "RIGHT");
@@ -74,6 +68,7 @@ void edgeFollow(bool& running){
 				motor[right] = SPEED;
 				motor[left] = 0;
 			}
+			sweeps++;
 			abortTimeslice();
 		}
 	}while(running);
@@ -89,7 +84,7 @@ bool detectNode(int forwards) {
 
 int gatherForwardsData(void) {
 	time100[T2] = 0;
-	int timeToWait = minDistance*10/(2*mmPs);
+	int timeToWait = minDistance*10/(2*sweepSpeed);
 
 	int count = 0;
 	int forwards = 0;
@@ -97,15 +92,17 @@ int gatherForwardsData(void) {
 	while(time100[T2] < timeToWait) {
 		forwards = forwards + (angleDifference(currentDirection(), forwards))/++count;
 
-		nxtDisplayCenteredTextLine(4, "%i", forwards);
-		nxtDisplayCenteredTextLine(5, "%i", currentDirection());
-		nxtDisplayCenteredTextLine(6, "%i", count);
 		wait10Msec(20);
 	}
 	return forwards;
 }
 
 task FollowEdge(){
+  if(!isDark()){
+    PlaySound(soundException);
+    wait10Msec(100);
+    StopAllTasks();
+  }
 	followingEdge = true;
 	edgeFollow(followingEdge);
 }
@@ -123,7 +120,8 @@ bool checkIsLeaf(void) {
 /**
  * Turns around until black is found
  */
-void turnAround(void) {
+void turnToLine(void) {
+  int startDir = currentDirection();
   if(direction == LEFT) {
 		motor[left] = -SPEED;
 		motor[right] = SPEED;
@@ -131,10 +129,12 @@ void turnAround(void) {
 		motor[left] = SPEED;
 		motor[right] = -SPEED;
 	}
+
 	while(!isDark()) {
 		abortTimeslice();
 	}
-
+	motor[left] = 0;
+	motor[right] = 0;
 }
 
 int FollowLineTilLeaf(void) {
@@ -169,32 +169,53 @@ int FollowLineTilHotel(void) {
 		abortTimeslice();
 	}
 }
+void faceForward(int forwards){
+	if(angleDifference(currentDirection(), forwards) > 0){//too far to the right
+		motor[left] = -SPEED; //turn left
+	} else {
+		motor[right] = -SPEED; //turn right
+	}
+	while(abs(angleDifference(currentDirection(), forwards)) > 1){
+		wait1Msec(1);
+	}
 
-int FollowSegmentTilEnd(void) {
+	int timeToWait = (sensorToAxle * 1000)/cruiseSpeed;
+	time1[T3] = 0;
+	motor[left] = SPEED;
+	motor[right] = SPEED;
+
+	while(time1[T3] < timeToWait) {
+	  wait1Msec(1);
+	};
+
+
+	motor[left] = 0;
+	motor[right] = 0;
+
+}
+
+int FollowSegmentTilEnd(Edge &edge) {
 	StartTask(FollowEdge);
 	int forwards = gatherForwardsData();
-	for(;;) {
+	edge.angle = forwards;
+
+	int found = FOUND_ERROR;
+
+	while(found == FOUND_ERROR) {
 		if(detectCan()) {
-			followingEdge = false;
-			StopTask(FollowEdge);
-			return FOUND_CAN;
+			found = FOUND_CAN;
 		}
 		if(detectNode(forwards)) {
-			if(isGrey()) {
-				PlaySound(soundBlip);
-				wait10Msec(10);
-				if(isGrey()) {
-					return FOUND_HOTEL;
-				}
-			  } else {
-				followingEdge = false;
-				StopTask(FollowEdge);
-				return FOUND_NODE;
-			}
+			found = FOUND_NODE;
 		}
 
 		abortTimeslice();
 	}
-	return FOUND_ERROR;
 
+	followingEdge = false;
+	StopTask(FollowEdge);
+	edge.length = sweeps;
+	faceForward(forwards);
+
+	return found;
 }

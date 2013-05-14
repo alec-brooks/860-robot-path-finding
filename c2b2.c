@@ -14,7 +14,7 @@ task main() {
   calibrateLight();
   calibrateCompass();
   wait10Msec(100);
-
+  turnToLine();
   int found = FOUND_ERROR;
   while(found != FOUND_HOTEL) {
     found = FollowSegmentTilEnd();
@@ -29,7 +29,7 @@ task main() {
   nxtDisplayCenteredTextLine(3, "At the hotel");
   wait10Msec(1000);
 
-  turnAround();
+  turnToLine();
   FollowLineTilLeaf();
   PlaySound(soundBeepBeep);
   nxtDisplayCenteredTextLine(3, "At the jetty end");

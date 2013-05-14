@@ -8,17 +8,35 @@
 #include "follow_line.c"
 #include "compass.c"
 #include "light_sensor.c"
-
+#include "branch_count.c"
+#include "map.c"
 #include "string_distance.c"
 
 task main(){
+  calibrateLight();
+  calibrateCompass();
+  turnToLine();
+  Island islands[maxIslands];
+  int currentIsland = 0;
   bool atOriginal = false;
+  bool atLeaf = false;
   while(!atOriginal){
+    int currentEdge = 0;
     //find hotel
-    int hotel = FollowLineTilHotel();
+
+    //int hotel = FollowLineTilHotel();
     //make map
-    int jetty = FollowLineTilLeaf();
+    while(!atLeaf){
+        int result = FollowSegmentTilEnd(islands[currentIsland].edges[currentEdge]);
+        nxtDisplayCenteredTextLine(3, "(%i, %i)", islands[currentIsland].edges[currentEdge].angle, islands[currentIsland].edges[currentEdge].length);
+        int branches = countBranches();
+        if(branches == 1) {
+          atLeaf = true;
+        }
+    }
+    atOriginal = true;
     //Check if same as map 1
     //Travel
+    wait10Msec(1000);
   }
 }

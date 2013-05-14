@@ -8,18 +8,25 @@
 #include "follow_line.c"
 #include "compass.c"
 #include "branch_count.c"
+#include "map.c"
 
 task main() {
   calibrateLight();
   calibrateCompass();
 
-  int found = FollowSegmentTilEnd();
+
+  Edge edge;
+  turnToLine();
+  int found = FollowSegmentTilEnd(edge);
   int branchCount = 0;
   if(found==FOUND_NODE){
+
       branchCount = countBranches();
   }
   motor[left] = 0;
   motor[right] = 0;
-  nxtDisplayCenteredTextLine(3, "number of branches = %i", branchCount);
+  eraseDisplay();
+  nxtDisplayCenteredTextLine(3, "no. of branches=");
+  nxtDisplayCenteredTextLine(4, "%i", branchCount);
   wait10Msec(1000);
 }

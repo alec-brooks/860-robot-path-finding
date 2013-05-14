@@ -9,15 +9,23 @@
 
 int countBranches(void) {
 	//start spin
-	motor[left] = -SPEED;
-	motor[right] = SPEED;
+	motor[left] = SPEED;
+	motor[right] = -SPEED;
+
 	int startDirection = currentDirection();
 	bool halfway = false;
 	int nodeCount = 0;
 	bool wasDark = isDark();
+
+	PlaySound(soundBeepBeep);
 	while(!halfway || (angleDifference(currentDirection(), startDirection) < 0)){
-		if(!halfway && (angleDifference(currentDirection(), startDirection) < 0)){
+	  nxtDisplayCenteredTextLine(5, "%i", angleDifference(currentDirection(), startDirection));
+	  nxtDisplayCenteredTextLine(6, "%i", currentDirection());
+	  nxtDisplayCenteredTextLine(7, "%i", startDirection);
+
+		if(!halfway && (angleDifference(currentDirection(), startDirection) < -90)){
 			halfway = true;
+			PlaySound(soundBeepBeep);
 		}
 		if(!wasDark && isDark()){
 			nodeCount++;

@@ -15,7 +15,7 @@ task main() {
   wait10Msec(100);
 
   int found = FOUND_ERROR;
-  while(found != FOUND_HOTEL) {
+  /*while(found != FOUND_HOTEL) {
     found = FollowSegmentTilEnd();
     if(FOUND_CAN) {
       nxtDisplayCenteredTextLine(3, "CAN");
@@ -25,8 +25,8 @@ task main() {
 		  motor[right] = 0;
 	    //wait10Msec(200);
     }
-  }
-  found = FollowSegmentTilEnd();
+  }*/
+  found = FollowLineTilHotel();
   motor[left] = 0;
   motor[right] = 0;
   eraseDisplay();
