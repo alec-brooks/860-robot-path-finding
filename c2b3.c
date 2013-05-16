@@ -12,6 +12,7 @@
 #include "types.h"
 #include "string_distance.c"
 #include "error.c"
+#include "hotel.c"
 
 task main(){
   calibrateLight();

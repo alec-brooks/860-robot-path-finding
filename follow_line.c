@@ -174,31 +174,6 @@ int FollowLineTilLeaf(void) {
 	}
 }
 
-int FollowLineTilHotel(void) {
-	StartTask(FollowEdge);
-	bool greyBuffer[8];
-	int index = 0;
-	for(;;) {
-		if(isGrey()) {
-			wait10Msec(10);
-			greyBuffer[ (index++) & 0x7 ] = isGrey(); //index modulo 8 (bitmask trick)
-			bool isAllGrey = true;
-			for(int i = 0; i < 8; i++) {
-			  if(!greyBuffer[i]) {
-			    isAllGrey = false;
-			    break;
-			  }
-		  }
-		  if(isAllGrey) {
-		    followingEdge = false;
-        StopTask(FollowEdge);
-		    return FOUND_HOTEL;
-		  }
-		 }
-		abortTimeslice();
-	}
-	return FOUND_ERROR;
-}
 
 /**
 
