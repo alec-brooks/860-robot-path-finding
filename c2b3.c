@@ -9,8 +9,9 @@
 #include "compass.c"
 #include "light_sensor.c"
 #include "branch_count.c"
-#include "map.c"
+#include "types.h"
 #include "string_distance.c"
+#include "error.c"
 
 task main(){
   calibrateLight();
@@ -18,25 +19,67 @@ task main(){
   turnToLine();
   Island islands[maxIslands];
   int currentIsland = 0;
-  bool atOriginal = false;
+  int revisited = -1;
+
   bool atLeaf = false;
-  while(!atOriginal){
+  while(revisited < 0){
     int currentEdge = 0;
     //find hotel
+    int hotel = FollowLineTilHotel();
+    //turnToAngle(currentDirection() + 180);
+    turnToLine();
 
-    //int hotel = FollowLineTilHotel();
     //make map
     while(!atLeaf){
         int result = FollowSegmentTilEnd(islands[currentIsland].edges[currentEdge]);
         nxtDisplayCenteredTextLine(3, "(%i, %i)", islands[currentIsland].edges[currentEdge].angle, islands[currentIsland].edges[currentEdge].length);
-        int branches = countBranches();
+
+        BranchAngles ba;
+        int branches = countBranches(ba);
+        motor[left] = 0;
+        motor[right] = 0;
         if(branches == 1) {
           atLeaf = true;
-        }
+        } else {
+          //nxtDisplayCenteredTextLine(4, "%i", branches);
+          if(branches != 2) {
+            panic("Not on an island");
+          }
+	        int nextAngle = 9001;
+	        for(int i = 0; i < branches; i++) {
+	            nxtDisplayCenteredTextLine(2, "%i", ba.angles[i]);
+	            PlaySound(soundBlip);
+
+	            if( abs( angleDifference(
+	              ba.angles[i],
+	              islands[currentIsland].edges[currentEdge].angle + 180)) > 10
+	            ) {
+								nextAngle = ba.angles[i];
+								break;
+	            }
+	        }
+			if(nextAngle > 9000) {
+				panic("No new branches");
+			}
+			playSound(soundBeepBeep);
+			turnToAngle(nextAngle);
+			turnToLine();
+      }
+      currentEdge++;
     }
-    atOriginal = true;
     //Check if same as map 1
-    //Travel
-    wait10Msec(1000);
+    for(int i = 0; i < currentIsland; i++) {
+	    if( (editDistance(islands[i], islands[currentIsland]) < ISLAND_THRESHOLD)) {
+	      revisited = i;
+	    }
+	  }
+	  if(revisited < 0) {
+	    panic("Yay!");
+	    //wait10Msec(100);
+	  }
   }
+  PlaySound(soundBeepBeep);
+  nxtDisplayCenteredTextLine(3, "Back on island %i", revisited+1);
+  wait10Msec(1000);
+
 }

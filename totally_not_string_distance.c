@@ -6,7 +6,6 @@
 
 #include "types.h"
 #include "config.h"
-#include "compass.c"
 
 #define delCost 100
 #define insCost 100
@@ -16,7 +15,7 @@ int subCost(Edge &frm, Edge &to){
 	 return abs(frm.length - to.length) + abs(angleDifference(frm.angle, to.angle));
 }
 
-int min3(int a, int b, int c){
+int min(int a, int b, int c){
 	if( a < b && a < c) {
 		return a;
 	} else {
@@ -39,7 +38,7 @@ int editDistance(Island &fromIsl, Island &toIsl){
 	//Fill the table
 	for(int i = 1; i < fromIsl.length; i++) {
 		for(int j = 1; j < toIsl.length; j++) {
-			int cost = min3(
+			int cost = min(
 				costTable[i-1][j-1] + subCost(fromIsl.edges[i], toIsl.edges[j]),
 				costTable[i][j-1] + insCost,
 				costTable[i-1][j] + delCost
@@ -47,6 +46,6 @@ int editDistance(Island &fromIsl, Island &toIsl){
 			costTable[i][j] = cost;
 		}
 	}
-	nxtDisplayCenteredTextLine(6, "%i", costTable[fromIsl.length][toIsl.length]);
+
 	return costTable[fromIsl.length][toIsl.length];
 }

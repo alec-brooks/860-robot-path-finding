@@ -17,7 +17,8 @@ task main() {
   turnToLine();
   int found = FOUND_ERROR;
   while(found != FOUND_HOTEL) {
-    found = FollowSegmentTilEnd();
+    Edge dummy;
+    found = FollowSegmentTilEnd(dummy);
 	  motor[left] = 0;
 	  motor[right] = 0;
   }

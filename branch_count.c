@@ -6,8 +6,9 @@
 
 #include "compass.c"
 #include "light_sensor.c"
+#include "types.h"
 
-int countBranches(void) {
+int countBranches( BranchAngles &branchAngles ) {
 	//start spin
 	motor[left] = SPEED;
 	motor[right] = -SPEED;
@@ -17,17 +18,14 @@ int countBranches(void) {
 	int nodeCount = 0;
 	bool wasDark = isDark();
 
-	PlaySound(soundBeepBeep);
+	PlaySound(soundFastUpwardTones);
 	while(!halfway || (angleDifference(currentDirection(), startDirection) < 0)){
-	  nxtDisplayCenteredTextLine(5, "%i", angleDifference(currentDirection(), startDirection));
-	  nxtDisplayCenteredTextLine(6, "%i", currentDirection());
-	  nxtDisplayCenteredTextLine(7, "%i", startDirection);
 
 		if(!halfway && (angleDifference(currentDirection(), startDirection) < -90)){
 			halfway = true;
-			PlaySound(soundBeepBeep);
 		}
-		if(!wasDark && isDark()){
+		if(!wasDark && isDark()) {
+		  branchAngles.angles[nodeCount] = currentDirection();
 			nodeCount++;
 		}
 		wasDark = isDark();

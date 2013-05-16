@@ -8,8 +8,12 @@
 #include "follow_line.c"
 #include "compass.c"
 #include "branch_count.c"
-#include "map.c"
+#include "types.h"
 
+
+int foo ( int i, int j) {
+  return abs( angleDifference( i, j));
+}
 task main() {
   calibrateLight();
   calibrateCompass();
@@ -18,15 +22,24 @@ task main() {
   Edge edge;
   turnToLine();
   int found = FollowSegmentTilEnd(edge);
+  int forwards = currentDirection();
   int branchCount = 0;
+  BranchAngles dummy;
   if(found==FOUND_NODE){
-
-      branchCount = countBranches();
+      branchCount = countBranches(dummy);
   }
   motor[left] = 0;
   motor[right] = 0;
   eraseDisplay();
   nxtDisplayCenteredTextLine(3, "no. of branches=");
   nxtDisplayCenteredTextLine(4, "%i", branchCount);
+  nxtDisplayCenteredTextLine(5, "%i %i ",
+      dummy.angles[0],
+      dummy.angles[1]
+  );
+  nxtDisplayCenteredTextLine(6, "%i %i ",
+    foo(dummy.angles[0], forwards+ 180),
+    foo(dummy.angles[1], forwards + 180)
+  );
   wait10Msec(1000);
 }

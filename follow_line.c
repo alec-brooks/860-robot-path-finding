@@ -7,7 +7,8 @@
 #include "config.h"
 #include "compass.c"
 #include "light_sensor.c"
-#include "map.c"
+#include "types.h"
+#include "error.c"
 
 #define LEFT false
 #define RIGHT true
@@ -49,11 +50,12 @@ void edgeFollow(bool& running){
 	bool wasDark = isDark();
 //displayBrightness();
 	do{
+	  /*
 	  if(direction) {
 		  nxtDisplayCenteredTextLine(2, "RIGHT");
 		} else {
 		  nxtDisplayCenteredTextLine(2, "LEFT");
-		}
+		}*/
 		//Find border point
 		if(wasDark != isDark()) {
 			displayBrightness();
@@ -99,8 +101,8 @@ int gatherForwardsData(void) {
 
 task FollowEdge(){
   if(!isDark()){
-    PlaySound(soundException);
-    wait10Msec(100);
+    //panic("Not on an edge!");
+    wait10Msec(1000);
     StopAllTasks();
   }
 	followingEdge = true;
@@ -117,11 +119,7 @@ bool checkIsLeaf(void) {
 	return false;
 }
 
-/**
- * Turns around until black is found
- */
-void turnToLine(void) {
-  int startDir = currentDirection();
+void spinInDirection(void) {
   if(direction == LEFT) {
 		motor[left] = -SPEED;
 		motor[right] = SPEED;
@@ -129,9 +127,31 @@ void turnToLine(void) {
 		motor[left] = SPEED;
 		motor[right] = -SPEED;
 	}
+}
+
+/**
+ * Turns around until black is found
+ */
+void turnToLine(void) {
+  spinInDirection();
 
 	while(!isDark()) {
 		abortTimeslice();
+	}
+	motor[left] = 0;
+	motor[right] = 0;
+}
+
+void turnToAngle(int angle) {
+  if( angleDifference(angle, currentDirection()) < 0 ) {
+      direction = LEFT;
+  } else {
+    direction = RIGHT;
+  }
+  spinInDirection();
+
+	while(abs(angleDifference(currentDirection(), angle)) != 0){
+		wait1Msec(1);
 	}
 	motor[left] = 0;
 	motor[right] = 0;
@@ -156,29 +176,48 @@ int FollowLineTilLeaf(void) {
 
 int FollowLineTilHotel(void) {
 	StartTask(FollowEdge);
+	bool greyBuffer[8];
+	int index = 0;
 	for(;;) {
 		if(isGrey()) {
-			PlaySound(soundBlip);
 			wait10Msec(10);
-			if(isGrey()) {
-				followingEdge = false;
-				StopTask(FollowEdge);
-				return FOUND_HOTEL;
-			}
+			greyBuffer[ (index++) & 0x7 ] = isGrey(); //index modulo 8 (bitmask trick)
+			bool isAllGrey = true;
+			for(int i = 0; i < 8; i++) {
+			  if(!greyBuffer[i]) {
+			    isAllGrey = false;
+			    break;
+			  }
+		  }
+		  if(isAllGrey) {
+		    followingEdge = false;
+        StopTask(FollowEdge);
+		    return FOUND_HOTEL;
+		  }
 		 }
 		abortTimeslice();
 	}
+	return FOUND_ERROR;
 }
+
+/**
+
+*/
 void faceForward(int forwards){
 	if(angleDifference(currentDirection(), forwards) > 0){//too far to the right
 		motor[left] = -SPEED; //turn left
 	} else {
 		motor[right] = -SPEED; //turn right
 	}
-	while(abs(angleDifference(currentDirection(), forwards)) > 1){
+	while(abs(angleDifference(currentDirection(), forwards)) != 0){
 		wait1Msec(1);
 	}
+}
 
+/**
+  Moves forwards so that the centre of rotation is approximately where the light sensor was.
+*/
+void moveToSensor() {
 	int timeToWait = (sensorToAxle * 1000)/cruiseSpeed;
 	time1[T3] = 0;
 	motor[left] = SPEED;
@@ -216,6 +255,7 @@ int FollowSegmentTilEnd(Edge &edge) {
 	StopTask(FollowEdge);
 	edge.length = sweeps;
 	faceForward(forwards);
+	moveToSensor();
 
 	return found;
 }
