@@ -24,7 +24,9 @@ int countBranches( BranchAngles &branchAngles ) {
 		if(!halfway && (angleDifference(currentDirection(), startDirection) < -90)){
 			halfway = true;
 		}
+
 		if(!wasDark && isDark()) {
+		  PlaySound(soundBlip);
 		  branchAngles.angles[nodeCount] = currentDirection();
 			nodeCount++;
 		}

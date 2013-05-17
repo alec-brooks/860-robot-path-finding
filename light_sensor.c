@@ -23,13 +23,13 @@ void saveLightFile(int light_threshold, int dark_threshold){
 }
 
 void performLightCalibration(){
-  motor[left] = SPEED;
-  motor[right] = -SPEED;
+  motor[left] = SPIN_SPEED;
+  motor[right] = -SPIN_SPEED;
 
   time100[T1] = 0;
   int maxLight = 0;
   int minLight = 101;
-  while(time100[T1]<50){
+  while(time100[T1]<100){
     int value = SensorValue[light];
     if(value<minLight){
       minLight = value;
@@ -44,7 +44,7 @@ void performLightCalibration(){
 
 	//*
     light_threshold = maxLight - 5;
-	dark_threshold = minLight + 5;
+	  dark_threshold = minLight + 20;
 	/*/
 	light_threshold = ((maxLight + minLight)*2)/3;
 	dark_threshold =  (maxLight + minLight)/3;
@@ -61,7 +61,7 @@ int getGreyvalue() {
 	  a += SensorValue[light];
 	  wait10Msec(1);
 	}
-	
+
 	nxtDisplayBigTextLine(3, "%i", a/count);
 	return a/count;
 }
@@ -107,6 +107,7 @@ void calibrateLight(){
 }
 
 bool isDark(void) {
+  nxtDisplayCenteredBigTextLine(2, "%i", SensorValue[light]);
   return SensorValue[light] <= dark_threshold;
 }
 

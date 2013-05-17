@@ -94,6 +94,7 @@ float getCompass(float k) {
 int currentDirection(void) {
 	int comp = (int) getCompass(encoder_k);
 	while( comp < 0 ) comp += 360;
+	while( comp > 360 ) comp -= 360;
 	return comp;
 }
 
@@ -106,6 +107,12 @@ int angleDifference(int a, int b) {
   while(ab > 180) ab -= 360;
   while(ab < -180) ab += 360;
   return ab;
+}
+
+bool isOppositeDirection(int a, int b) {
+  nxtDisplayCenteredTextLine(4, "%i", a);
+  nxtDisplayCenteredTextLine(5, "%i", b + 180);
+  return abs(angleDifference(a, b + 180)) < 20;
 }
 
 #endif

@@ -11,9 +11,64 @@
 #define delCost 100
 #define insCost 100
 
+#include "log.c"
+
+typedef struct {
+   int table[ISLAND_SIZE][ISLAND_SIZE];
+} Cost;
+
+void logTable(Cost &cost, Island &fromIsl, Island &toIsl) {
+  string s = " ";
+  for(int i = 0; i < fromIsl.length; i++) {
+    logInt(fromIsl.edges[i].angle);
+    logInt(fromIsl.edges[i].length);
+    logLine(s);
+  }
+  logLine(s);
+  logLine(s);
+
+  for(int j = 0; j < toIsl.length; j++) {
+    logInt(toIsl.edges[j].angle);
+    logInt(toIsl.edges[j].length);
+    logLine(s);
+  }
+  logLine(s);
+  logLine(s);
+  for(int j = 0; j < toIsl.length; j++) { //rows
+   for(int i = 0; i < fromIsl.length; i++) { //columns
+     logInt(cost.table[i][j]);
+   }
+   logLine(s);
+ }
+
+/*for(int j = -1; j < toIsl.length; j++) { //rows
+
+   for(int i = -1; i < fromIsl.length; i++) { //columns
+     if(j == -1) {
+       if(i == -1) {
+         logChar('\t');
+         logChar('\t');
+       }
+       else {
+	       logInt(fromIsl.edges[i].angle);
+	       logChar(',');
+	       logInt(fromIsl.edges[i].length);
+	       logChar('\t');
+	     }
+     } else if(i == -1) {
+       logInt(toIsl.edges[j].angle);
+       logChar(',');
+       logInt(toIsl.edges[j].length);
+       logChar('\t');
+     } else {
+        logInt(cost.table[i][j]);
+      }
+    }
+  }*/
+}
 
 int subCost(Edge &frm, Edge &to){
-	 return abs(frm.length - to.length) + abs(angleDifference(frm.angle, to.angle));
+	 return abs(frm.length - to.length)*LENGTH_WEIGHT + abs(angleDifference(frm.angle, to.angle))*ANGLE_WEIGHT;
 }
 
 int min3(int a, int b, int c){
@@ -25,28 +80,51 @@ int min3(int a, int b, int c){
 }
 
 int editDistance(Island &fromIsl, Island &toIsl){
-	int costTable[ISLAND_SIZE][ISLAND_SIZE];
+  int total = 0;
+  total += abs(fromIsl.length - toIsl.length)*delCost;
+  if(fromIsl.length != toIsl.length) {
+    return total;
+  } else {
+    for(int i = 0; i < fromIsl.length; i++) {
+      total += abs( angleDifference(fromIsl.edges[i].angle, toIsl.edges[i].angle))*ANGLE_WEIGHT;
+      total += abs(fromIsl.edges[i].length - toIsl.edges[i].length)*LENGTH_WEIGHT;
+    }
+    nxtDisplayCenteredTextLine(5, "%i", total);
+    logInt(total);
+    string s = " ";
+    logLine(s);
+  }
+  return total;
+}
+
+/*
+int editDistance(Island &fromIsl, Island &toIsl){
+	Cost cost;
 
 	//Initialisation
 	for(int i=0;i<fromIsl.length; i++){
-		costTable[i][0] = i*insCost;
+		cost.table[i][0] = i*insCost;
 	}
 
 	for(int j = 0; j < toIsl.length; j++) {
-		costTable[0][j] = j*delCost;
+		cost.table[0][j] = j*delCost;
 	}
 
 	//Fill the table
 	for(int i = 1; i < fromIsl.length; i++) {
 		for(int j = 1; j < toIsl.length; j++) {
-			int cost = min3(
-				costTable[i-1][j-1] + subCost(fromIsl.edges[i], toIsl.edges[j]),
-				costTable[i][j-1] + insCost,
-				costTable[i-1][j] + delCost
+			int c = min3(
+				cost.table[i-1][j-1] + subCost(fromIsl.edges[i], toIsl.edges[j]),
+				cost.table[i][j-1] + insCost,
+				cost.table[i-1][j] + delCost
 			);
-			costTable[i][j] = cost;
+			cost.table[i][j] = c;
 		}
 	}
-	nxtDisplayCenteredTextLine(6, "%i", costTable[fromIsl.length][toIsl.length]);
-	return costTable[fromIsl.length][toIsl.length];
+	openLogFile();
+	logTable(cost, fromIsl, toIsl);
+	closeLogFile();
+	nxtDisplayCenteredTextLine(6, "%i", cost.table[fromIsl.length][toIsl.length]);
+	return cost.table[fromIsl.length][toIsl.length];
 }
+*/

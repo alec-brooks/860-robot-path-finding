@@ -14,7 +14,6 @@
 #define RIGHT true
 
 #define SONAR_THRESHOLD 20
-#define ANGLE_THRESHOLD 20
 
 #define FOUND_ERROR -1
 #define FOUND_CAN 1
@@ -23,18 +22,6 @@
 #define FOUND_LEAF 8
 
 bool followingEdge = true;
-
-void displayBrightness(void) {
-	string name;
-	if(isGrey()) {
-		name = "grey";
-	} else if(isDark()) {
-		name = "black";
-	} else if(isLight()) {
-		name = "white";
-	}
-	nxtDisplayCenteredTextLine(3, name);
- }
 
 bool direction = LEFT;
 int sweeps;
@@ -48,17 +35,10 @@ void edgeFollow(bool& running){
 		motor[right] = -SPEED;
 	}
 	bool wasDark = isDark();
-//displayBrightness();
+
 	do{
-	  /*
-	  if(direction) {
-		  nxtDisplayCenteredTextLine(2, "RIGHT");
-		} else {
-		  nxtDisplayCenteredTextLine(2, "LEFT");
-		}*/
 		//Find border point
 		if(wasDark != isDark()) {
-			displayBrightness();
 			wasDark = isDark();
 			wait10Msec(10);
 			if(direction == LEFT) {
@@ -121,11 +101,11 @@ bool checkIsLeaf(void) {
 
 void spinInDirection(void) {
   if(direction == LEFT) {
-		motor[left] = -SPEED;
-		motor[right] = SPEED;
+		motor[left] = -SPIN_SPEED;
+		motor[right] = SPIN_SPEED;
 	} else {
-		motor[left] = SPEED;
-		motor[right] = -SPEED;
+		motor[left] = SPIN_SPEED;
+		motor[right] = -SPIN_SPEED;
 	}
 }
 
