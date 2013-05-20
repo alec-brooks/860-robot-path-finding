@@ -33,7 +33,7 @@ int dijkstra(Graph & graph, int from, int to, Path & path){
 
     //Initialise the set of known distances
     int distance[MAX_NODES];
-    memset(distance, 0x7FFF, sizeof(int)*graph.nNodes); //Set unknown distances to a large number
+    memset(distance, 0x7FFF, sizeof(distance[0])*graph.nNodes); //Set unknown distances to a large number
     distance[from] = 0;
 
     //Initialise the set of nodes with unknown distance
@@ -67,9 +67,10 @@ int dijkstra(Graph & graph, int from, int to, Path & path){
         }
         //Iterate through intersections
         for(int i = 0; i < remainingNodes; i++) {
-            Edge e = graph.adjacency[minNode][unknownNodes[i]];
+            Edge e;
+            e = graph.adjacency[minNode][unknownNodes[i]];
             if( e.length > 0 ) {
-                int pathCost = minLength + e.length
+                int pathCost = minLength + e.length;
                 if( pathCost < distance[unknownNodes[i]] ) {
                     distance[unknownNodes[i]] = pathCost;
                     steps[nextStep++] = e.angle;
@@ -77,11 +78,11 @@ int dijkstra(Graph & graph, int from, int to, Path & path){
             }
         }
     }
-    
+
     //Calculate the path from `to` back to `from`
     int stepCount = 0;
-    for(int i = steps[to], stepCount = 0; i != from; i = steps[i], stepCount++) {
-        path.angles[stepCount] = graph.adjacency[steps[i]][i].angle;
+     for(int i = steps[to]; i != from; i = steps[i]) {
+        path.angles[stepCount++] = graph.adjacency[steps[i]][i].angle;
     }
 
     return nextStep;
