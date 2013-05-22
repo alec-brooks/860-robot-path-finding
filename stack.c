@@ -5,11 +5,13 @@ bool empty(ExploreStack & stack){
 };
 
 void pop(ExploreStack & stack, Stub & stub){
-  stub = stack.stubs[--stack.top];
+  stub.node = stack.stubs[--stack.top].node;
+  stub.angle = stack.stubs[stack.top].angle;
 }
 
 void push(ExploreStack & stack, Stub & stub){
-    stack.stubs[stack.top++] = stub;
+    stack.stubs[stack.top].node = stub.node;
+    stack.stubs[stack.top++].angle = stub.angle;
 }
 
 void initStack(ExploreStack & stack){

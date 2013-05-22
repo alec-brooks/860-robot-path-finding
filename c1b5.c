@@ -13,9 +13,42 @@
 #include "graph.c"
 #include "exploreGraph.c"
 
+string graphName = "Map.txt";
+TFileHandle graphfile;
+TFileIOResult result;
+short size = 1024;
+
+void writeGraph(Graph & graph) {
+  string graphName = "Map.txt";
+  TFileHandle graphfile;
+  TFileIOResult result;
+  short size = 1024;
+  OpenWrite(graphfile, result, graphName, size);
+  string buff = "";
+  string header = "nNode\t| Neighbours\n";
+  string lineStart = "%i\t\t| ";
+  string line = " %i";
+  WriteText(graphfile, result, header);
+  for(int i = 0; i<graph.nNodes; i++){
+    StringFormat(buff, lineStart, i);
+    WriteText(graphfile, result, buff);
+    for(int j = 0;j<graph.nNodes; j++){
+      if(graph.adjacency[i][j].length>0){
+        StringFormat(buff, line, j);
+        WriteText(graphfile, result, buff);
+      }
+    }
+    WriteText(graphfile, result, "\n")
+  }
+  Close(graphfile, result);
+}
+
+
+
 task main(){
   calibrateLight();
   calibrateCompass();
+  Delete(graphName,result);
   ExploreStack stack;
   Graph graph;
 
@@ -40,7 +73,8 @@ task main(){
   }
   motor[left] = 0;
   motor[right] = 0;
-  eraseDisplay();
-  nxtDisplayCenteredTextLine(3, "%i nodes found", graph.nNodes);
+  writeGraph(graph);
+  nxtDisplayCenteredTextLine(3, "Wrote graph to file");
   wait10Msec(1000);
+
 }

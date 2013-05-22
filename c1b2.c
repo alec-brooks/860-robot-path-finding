@@ -1,4 +1,4 @@
-#pragma config(Sensor, S1,     light,          sensorLightActive)
+#pragma config(Sensor, S2,     light,          sensorLightActive)
 #pragma config(Sensor, S4,     sonar,          sensorSONAR)
 #pragma config(Motor,  motorB,          right,         tmotorNormal, PIDControl, encoder)
 #pragma config(Motor,  motorC,          left,          tmotorNormal, PIDControl, encoder)
@@ -20,7 +20,7 @@ task main() {
 
 
   Edge edge;
-  turnToLine();
+  //turnToLine();
   int found = FollowSegmentTilEnd(edge);
   int forwards = currentDirection();
   int branchCount = 0;
