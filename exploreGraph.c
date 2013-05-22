@@ -13,42 +13,57 @@
 #include "compass.c"
 
 void goToNode(Graph & graph, int from, int to){
-  Path path;
-  Edge dummy;
-  nxtDisplayCenteredTextLine(4, "Going to %i", to);
-  //perform dij on graph
-  int steps = dijkstra(graph, from, to, path);
-  //follow path until node reached
-  for(int i = 0; i < steps; i++){
-    nxtDisplayCenteredTextLine(3, "Known node %i", path.branches[i].node);
-    turnToAngle(path.branches[i].angle, 15);
-    turnToLine();
-    FollowSegmentTilEnd(dummy);
-  }
-  nxtDisplayCenteredTextLine(3, "Known node %i", to);
-  nxtDisplayCenteredTextLine(4, "Got to %i", to);
+	Path path;
+	Edge dummy;
+	nxtDisplayCenteredTextLine(4, "Going to %i", to);
+	//perform dij on graph
+	int steps = dijkstra(graph, from, to, path);
+	//follow path until node reached
+	for(int i = 0; i < steps; i++){
+		nxtDisplayCenteredTextLine(3, "Known node %i", path.branches[i].node);
+		turnToAngle(path.branches[i].angle, 15);
+		turnToLine();
+		FollowSegmentTilEnd(dummy);
+	}
+	nxtDisplayCenteredTextLine(3, "Known node %i", to);
+	nxtDisplayCenteredTextLine(4, "Got to %i", to);
 
 }
 
-int exploreCurEdge(Graph & graph, ExploreStack & stack, int currentNode){
-  Edge curEdge;
-  BranchAngles branches;
-  Stub stub;
-  FollowSegmentTilEnd(curEdge);
-  int nextNode = addNode(graph);
-  nxtDisplayCenteredTextLine(3, "New node %i", nextNode);
-  if(currentNode>=0){
-    addEdge(graph, currentNode, nextNode, curEdge);
-  }
+int exploreNewNode(Graph & graph, ExploreStack & stack, int lastNode, Edge & lastEdge){
+	BranchAngles branches;
+	Stub stub;
+	int newNode = addNode(graph);
+	nxtDisplayCenteredTextLine(3, "New node %i", newNode);
+	if(lastNode>=0){
+		addEdge(graph, lastNode, newNode, lastEdge);
+	}
 
-  int nBranches = countBranches(branches);
+	int nBranches = countBranches(branches);
 
-  for(int i =0; i<nBranches; i++){
-    if(!isOppositeDirection(branches.angles[i], curEdge.angle) || currentNode<0){
-		    stub.node = nextNode;
-		    stub.angle = branches.angles[i];
-		    push(stack, stub);
-    }
-  }
-  return nextNode;
+	for(int i =0; i<nBranches; i++){
+		if(!isOppositeDirection(branches.angles[i], lastEdge.angle) || lastNode<0){
+			stub.node = newNode;
+			stub.angle = branches.angles[i];
+			push(stack, stub);
+		}
+	}
+	return newNode;
+}
+
+void recordMove(Trail & trail, Edge & newEdge, int newNode) {
+	trail.nodes[trail.length] = newNode;
+	Point relative;
+	edgeToPoint(newEdge, relative);
+	addPoints(relative, trail.points[trail.length-1], trail.points[trail.length]);
+	trail.length++;
+}
+
+int isVisitedNode(Locations & locs, Trail & trail, Point & new) {
+	for(int i = trail.length-1; i >= 0; i++) {
+		if(isSamePoint(new, locs.points[trail.nodes[i]])) {
+			return trail.nodes[i];
+		}
+	}
+	return -1;
 }

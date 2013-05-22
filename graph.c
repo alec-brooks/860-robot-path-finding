@@ -11,91 +11,93 @@
 #include "error.c"
 
 void initGraph(Graph & graph){
-    //memset(graph.adjacency, 0, sizeof(Edge)*MAX_NODES*MAX_NODES);
-    graph.nNodes = 0;
+	//memset(graph.adjacency, 0, sizeof(Edge)*MAX_NODES*MAX_NODES);
+	graph.nNodes = 0;
 }
 
 void addEdge(Graph & graph, int from, int to, Edge & edge){
-    graph.adjacency[from][to].angle = edge.angle;
-    graph.adjacency[from][to].length = edge.length;
+	graph.adjacency[from][to].angle = edge.angle;
+	graph.adjacency[from][to].length = edge.length;
 
-    graph.adjacency[to][from].length= edge.length;
-    graph.adjacency[to][from].angle = angleDifference(edge.angle, 180);
+	graph.adjacency[to][from].length= edge.length;
+	graph.adjacency[to][from].angle = angleDifference(edge.angle, 180);
 };
 
 int addNode(Graph & graph){
-    int ret = graph.nNodes;
-    graph.nNodes++; //Post-increment doesn't work properly when returning, maybe
-    return ret;
+	int ret = graph.nNodes;
+	graph.nNodes++; //Post-increment doesn't work properly when returning, maybe
+	return ret;
 }
 
 int dijkstra(Graph & graph, int from, int to, Path & path){
-    if(from==to){
-      return 0;
-    }
+	if(from==to){
+		return 0;
+	}
 
-    int steps[MAX_NODES];
-    //Initialise the set of known distances
-    int distance[MAX_NODES];
-    //memset(distance, MAX_INT, sizeof(distance[0])*graph.nNodes); //Set unknown distances to a large number
-    for(int i = 0; i < graph.nNodes; i++) {
-      distance[i] = MAX_NODES*30;
-    }
-    distance[from] = 0;
+	int steps[MAX_NODES];
+	//Initialise the set of known distances
+	int distance[MAX_NODES];
+	//memset(distance, MAX_INT, sizeof(distance[0])*graph.nNodes); //Set unknown distances to a large number
+	for(int i = 0; i < graph.nNodes; i++) {
+		distance[i] = MAX_NODES*30;
+	}
+	distance[from] = 0;
 
-    //Initialise the set of nodes with unknown distance
-    int unknownNodes[MAX_NODES];
-    int remainingNodes = graph.nNodes;
-    for(int i = 0; i < graph.nNodes; i++) {
-        unknownNodes[i] = i;
-    }
+	//Initialise the set of nodes with unknown distance
+	int unknownNodes[MAX_NODES];
+	int remainingNodes = graph.nNodes;
+	for(int i = 0; i < graph.nNodes; i++) {
+		unknownNodes[i] = i;
+	}
 
-    while( remainingNodes > 0 ) {
-        //Find the unexplored node with the shortest known distance
-        int minLength = MAX_INT;
-        int minNode = -1;
-        int ix = -1;
-        for(int i = 0; i < remainingNodes; i++) {
-            if( distance[unknownNodes[i]] < minLength ) {
-                ix = i;
-                minLength = distance[unknownNodes[ix]];
-                minNode = unknownNodes[ix];
-            }
-        }
+	while( remainingNodes > 0 ) {
+		//Find the unexplored node with the shortest known distance
+		int minLength = MAX_INT;
+		int minNode = -1;
+		int ix = -1;
+		for(int i = 0; i < remainingNodes; i++) {
+			if( distance[unknownNodes[i]] < minLength ) {
+				ix = i;
+				minLength = distance[unknownNodes[ix]];
+				minNode = unknownNodes[ix];
+			}
+		}
 
-        //Check if accessible
-        if(ix < 0) {
-            panic("Cannot reach node");
-        }
+		//Check if accessible
+		if(ix < 0) {
+			panic("Cannot reach node");
+		}
 
-        remainingNodes--;
-        //Remove the node from the list of unexplored nodes
-        for(int i = ix; i < remainingNodes; i++) {
-            unknownNodes[i] = unknownNodes[i+1];
-        }
+		remainingNodes--;
+		//Remove the node from the list of unexplored nodes
+		for(int i = ix; i < remainingNodes; i++) {
+			unknownNodes[i] = unknownNodes[i+1];
+		}
 
-        //Iterate through intersections
-        for(int i = 0; i < remainingNodes; i++) {
-            Edge e;
-            e.length = graph.adjacency[minNode][unknownNodes[i]].length;
-            e.angle = graph.adjacency[minNode][unknownNodes[i]].angle;
-            if( e.length > 0 ) {
-                int pathCost = minLength + e.length;
-                if( pathCost < distance[unknownNodes[i]] ) {
-                    distance[unknownNodes[i]] = pathCost;
-                    steps[minNode] = unknownNodes[i];
-                }
-            }
-        }
-    }
+		//Iterate through intersections
+		for(int i = 0; i < remainingNodes; i++) {
+			Edge e;
+			e.length = graph.adjacency[minNode][unknownNodes[i]].length;
+			e.angle = graph.adjacency[minNode][unknownNodes[i]].angle;
+			if( e.length > 0 ) {
+				int pathCost = minLength + e.length;
+				if( pathCost < distance[unknownNodes[i]] ) {
+					distance[unknownNodes[i]] = pathCost;
+					steps[minNode] = unknownNodes[i];
+				}
+			}
+		}
+	}
 
-    //Calculate the path from `to` back to `from`
-    int stepCount = 0;
-     for(int i = from; i != to; i = steps[i]) {
-        path.branches[stepCount].angle = graph.adjacency[i][steps[i]].angle;
-        path.branches[stepCount].node = i;
-        stepCount++;
-    }
+	//Calculate the path from `to` back to `from`
+	int stepCount = 0;
+	for(int i = from; i != to; i = steps[i]) {
+		path.branches[stepCount].angle = graph.adjacency[i][steps[i]].angle;
+		path.branches[stepCount].node = i;
+		stepCount++;
+	}
 
-    return stepCount;
+	return stepCount;
 }
+
+

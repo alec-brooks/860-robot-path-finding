@@ -6,36 +6,66 @@
 
 #include "config.h"
 
+//Describes an straight line from one node to another
 typedef struct{
 	int angle;//in degrees
 	int length;//in pivots
 } Edge;
 
+//Describes an island; a sequence of straight lines starting at the hotel
 typedef struct{
 	Edge edges[ISLAND_SIZE];
 	int length;
 } Island;
 
+//Describes the angles of the branches radiating from a single node
 typedef struct{
 	int angles[MAX_BRANCHES];
 } BranchAngles;
 
+//Describes the connectivity and distance between nodes in a graph
+//Nodes are numbered from 0 to (nNodes - 1)
+//An edge at adjacency[i][j] describes the edge starting at i and ending at j
+//The edge at adjacency[j][i] should have the same length, and opposite angle.
 typedef struct{
 	Edge adjacency[MAX_NODES][MAX_NODES];
 	int nNodes;
 } Graph;
 
-
+//Describes an unexplored branch starting at a node, and pointing at an angle
 typedef struct{
 	int node;
 	int angle;
 } Stub;
 
+//Contains a FIFO collection of unexplored Stubs, in the order they are to be explored
 typedef struct{
 	Stub stubs[MAX_NODES*MAX_BRANCHES];
 	int top;
 } ExploreStack;
 
+//Describes the path needed to get from one node to another
+//branches[0].node should be the current node
+//branches[i+1].node should be the node reached by traveling along the stub indicated by branches[i]
 typedef struct{
 	Stub branches[MAX_NODES];
 } Path;
+
+//Describes a cartesian point, in sweeps
+//(0, 0) is usually defined as the location of node 0
+typedef struct{
+	float x;
+	float y;
+} Point;
+
+//Described the estimated cartesian locations of the nodes of a graph
+typedef struct{
+	Point points[MAX_NODES];
+} Locations;
+
+//Contains a list of the most recently visited nodes, and the relative movement required to get to them
+typedef struct{
+	int nodes[MAX_NODES];
+	Point moves[MAX_NODES];
+	int length;
+} Trail;

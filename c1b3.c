@@ -14,33 +14,35 @@
 #include "exploreGraph.c"
 
 task main(){
-  calibrateLight();
-  calibrateCompass();
-  ExploreStack stack;
-  Graph graph;
+	calibrateLight();
+	calibrateCompass();
+	ExploreStack stack;
+	Graph graph;
 
-  initStack(stack);
-  initGraph(graph);
-  Stub stub;
+	initStack(stack);
+	initGraph(graph);
+	Stub stub;
+	Edge lastEdge;
 
-  int currentNode = -1;
-  //go to node
-  currentNode = exploreCurEdge(graph, stack, currentNode);
-  //while not empty
-  while(!empty(stack)){
-    pop(stack, stub);
+	int currentNode = -1;
+	//go to node
+	currentNode = exploreNewNode(graph, stack, currentNode, lastEdge);
+	//while not empty
+	while(!empty(stack)){
+		pop(stack, stub);
 		motor[left] = 0;
 		motor[right] = 0;
-    goToNode(graph, currentNode, stub.node);
-    currentNode = stub.node;
-    turnToAngle(stub.angle, 15);
-    turnToLine();
-    nxtDisplayCenteredTextLine(4, "Exploring...");
-    currentNode = exploreCurEdge(graph, stack, currentNode);
-  }
-  motor[left] = 0;
-  motor[right] = 0;
-  eraseDisplay();
-  nxtDisplayCenteredTextLine(3, "%i nodes found", graph.nNodes);
-  wait10Msec(1000);
+		goToNode(graph, currentNode, stub.node);
+		currentNode = stub.node;
+		turnToAngle(stub.angle, 15);
+		turnToLine();
+		nxtDisplayCenteredTextLine(4, "Exploring...");
+		FollowSegmentTilEnd(lastEdge);
+		currentNode = exploreNewNode(graph, stack, currentNode, lastEdge);
+	}
+	motor[left] = 0;
+	motor[right] = 0;
+	eraseDisplay();
+	nxtDisplayCenteredTextLine(3, "%i nodes found", graph.nNodes);
+	wait10Msec(1000);
 }

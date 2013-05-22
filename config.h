@@ -14,3 +14,4 @@
 #define LENGTH_WEIGHT 4
 #define MAX_NODES 32
 #define MAX_INT 32767
+#define MIN_NODE_DISTANCE 10 //The minimum distance between two unconnected nodes (in sweeps)
