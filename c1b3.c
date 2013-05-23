@@ -26,6 +26,7 @@ task main(){
 
 	int currentNode = -1;
 	//go to node
+	FollowSegmentTilEnd(lastEdge);
 	currentNode = exploreNewNode(graph, stack, currentNode, lastEdge);
 	//while not empty
 	while(!empty(stack)){

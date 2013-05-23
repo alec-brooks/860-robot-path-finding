@@ -11,6 +11,7 @@
 #include "stack.c"
 #include "graph.c"
 #include "compass.c"
+#include "cartesian.c"
 
 void goToNode(Graph & graph, int from, int to){
 	Path path;
@@ -53,9 +54,13 @@ int exploreNewNode(Graph & graph, ExploreStack & stack, int lastNode, Edge & las
 
 void recordMove(Trail & trail, Edge & newEdge, int newNode) {
 	trail.nodes[trail.length] = newNode;
-	Point relative;
-	edgeToPoint(newEdge, relative);
-	addPoints(relative, trail.points[trail.length-1], trail.points[trail.length]);
+	if(trail.length > 0) {
+		Point relative;
+		edgeToPoint(newEdge, relative);
+	  addPoints(relative, trail.moves[trail.length-1], trail.moves[trail.length]);
+	} else {
+	  edgeToPoint(newEdge, trail.moves[trail.length]);
+  }
 	trail.length++;
 }
 

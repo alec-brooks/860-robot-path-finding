@@ -91,7 +91,7 @@ int gatherForwardsData(void) {
 
 task FollowEdge(){
   if(!isDark()){
-    //panic("Not on an edge!");
+    panic("Not on an edge!");
     wait10Msec(1000);
     StopAllTasks();
   }

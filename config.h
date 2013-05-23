@@ -7,7 +7,7 @@
 #define sweepSpeed 17.2 //Speed while sweeping in mm/s
 #define cruiseSpeed 66 //Speed while moving forwards at SPEED in mm/s
 #define sensorToAxle 72 //Distance from the light sensor to the middle of the axle, in mm
-#define minDistance 140//150
+#define minDistance 100//140
 #define maxIslands 8
 #define ANGLE_THRESHOLD 15
 #define ANGLE_WEIGHT 1

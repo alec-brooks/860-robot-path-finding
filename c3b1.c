@@ -12,6 +12,7 @@
 #include "stack.c"
 #include "graph.c"
 #include "exploreGraph.c"
+#include "cartesian.c"
 
 task main(){
 	calibrateLight();
@@ -28,6 +29,7 @@ task main(){
 
 	int currentNode = -1;
 	//go to node
+	FollowSegmentTilEnd(lastEdge);
 	currentNode = exploreNewNode(graph, stack, currentNode, lastEdge);
 	locs.points[currentNode].x = 0;
 	locs.points[currentNode].y = 0;
@@ -42,17 +44,19 @@ task main(){
 		turnToLine();
 		nxtDisplayCenteredTextLine(4, "Exploring...");
 		FollowSegmentTilEnd(lastEdge);
-		
+
 		Point here;
 		edgeToPoint(lastEdge, here);
-		addPoint(here, locs.points[currentNode], here);
+		addPoints(here, locs.points[currentNode], here);
 		int oldNode = isVisitedNode(locs, trail, here);
 
 		if(oldNode < 0) {
 			currentNode = exploreNewNode(graph, stack, currentNode, lastEdge);
-			locs[currentNode].x = here.x;
-			locs[currentNode].y = here.y;
+			locs.points[currentNode].x = here.x;
+			locs.points[currentNode].y = here.y;
 		} else {
+		  motor[left] = 0;
+		  motor[right] = 0;
 			currentNode = oldNode;
 			//Adjust estimations of node locations
 		}
